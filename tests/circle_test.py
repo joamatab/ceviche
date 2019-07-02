@@ -2,7 +2,7 @@ import autograd.numpy as np
 from autograd import grad, multigrad_dict
 import matplotlib.pylab as plt
 
-def sigmoid(x, strength=.5):
+def sigmoid(x, strength=.2):
     # used to anti-alias the circle, higher strength means sharper boundary
     return np.exp(x * strength) / (1 + np.exp(x * strength))
 
