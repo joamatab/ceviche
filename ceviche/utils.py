@@ -3,6 +3,9 @@ import scipy.sparse as sp
 import copy
 import matplotlib.pylab as plt
 
+from autograd import make_vjp
+import autograd.numpy as npa
+
 """ Just some utilities for easier testing and debugging"""
 
 def make_sparse(N, random=True, density=1):
@@ -70,6 +73,7 @@ def grid_coords(array, dL):
 
     return xs, ys
 
+""" Autograd Stuff """
 
 def vjp_maker_num(fn, arg_inds, steps):
     """ Makes a vjp_maker for the numerical derivative of a function `fn`
@@ -106,6 +110,29 @@ def vjp_maker_num(fn, arg_inds, steps):
         vjp_makers.append(vjp_single_arg(ia=ia))
 
     return tuple(vjp_makers)
+
+from autograd.core import make_vjp as _make_vjp, make_jvp as _make_jvp
+from autograd.wrap_util import unary_to_nary
+from autograd.extend import primitive, defvjp_argnum, vspace
+
+@unary_to_nary
+def jacobian_forward(fn, x):
+    """
+    Returns a function which computes the Jacobian of `fun` with respect to
+    positional argument number `argnum`, which must be a scalar or array. Unlike
+    `grad` it is not restricted to scalar-output functions, but also it cannot
+    take derivatives with respect to some argument types (like lists or dicts).
+    If the input to `fun` has shape (in1, in2, ...) and the output has shape
+    (out1, out2, ...) then the Jacobian has shape (out1, out2, ..., in1, in2, ...).
+    """
+    vjp, ans = _make_vjp(fun, x)
+    ans_vspace = vspace(ans)
+    jacobian_shape = ans_vspace.shape + vspace(x).shape
+    grads = map(vjp, ans_vspace.standard_basis())
+    return np.reshape(np.stack(grads), jacobian_shape)
+
+
+
 
 
 """ Plotting and measurement utilities for FDTD, may be moved later"""
