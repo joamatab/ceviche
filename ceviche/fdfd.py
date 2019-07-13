@@ -1,4 +1,4 @@
-import autograd.numpy as np
+import jax.numpy as np
 import scipy.sparse as sp
 
 from ceviche.primitives import *

@@ -1,6 +1,6 @@
 import unittest
 
-import numpy as np
+import jax.numpy as np
 import autograd.numpy as npa
 import scipy.sparse as sp
 import scipy.sparse.linalg as spl
@@ -9,9 +9,13 @@ import copy
 from autograd.extend import primitive, defvjp
 from autograd import grad
 
+import sys
+sys.path.append('../ceviche')
+
 from ceviche.utils import grad_num
 from ceviche.primitives import *
 from ceviche.fdfd import fdfd_hz, fdfd_ez
+from ceviche.jax_jacobian import jacobian
 
 """
 This file tests the autograd gradients of an FDFD and makes sure that they
@@ -87,7 +91,7 @@ class TestFDFD(unittest.TestCase):
                  + npa.sum(npa.square(npa.abs(Ex))) \
                  + npa.sum(npa.square(npa.abs(Ey)))
 
-        grad_autograd = grad(J_fdfd)(self.eps_arr)
+        grad_autograd = jacobian(J_fdfd)(self.eps_arr)
         grad_numerical = grad_num(J_fdfd, self.eps_arr, step_size=DEPS)
 
         if VERBOSE:
@@ -117,7 +121,7 @@ class TestFDFD(unittest.TestCase):
                  + npa.sum(npa.square(npa.abs(Hx))) \
                  + npa.sum(npa.square(npa.abs(Hy)))
 
-        grad_autograd = grad(J_fdfd)(self.eps_arr)
+        grad_autograd = jacobian(J_fdfd)(self.eps_arr)
         grad_numerical = grad_num(J_fdfd, self.eps_arr, step_size=DEPS)
 
         if VERBOSE:

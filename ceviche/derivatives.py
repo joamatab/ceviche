@@ -1,7 +1,7 @@
-import numpy as np
+import numpy as npo
 import scipy.sparse as sp
 
-import autograd.numpy as npa
+import jax.numpy as np
 
 from ceviche.constants import *
 
@@ -48,10 +48,10 @@ def S_create(omega, shape, npml, dL):
     s_vector_y_b = create_sfactor('b', omega, dL, Ny, Ny_pml)
 
     # Fill the 2D space with layers of appropriate s-factors
-    Sx_f_2D = np.zeros(shape, dtype=np.complex128)
-    Sx_b_2D = np.zeros(shape, dtype=np.complex128)
-    Sy_f_2D = np.zeros(shape, dtype=np.complex128)
-    Sy_b_2D = np.zeros(shape, dtype=np.complex128)
+    Sx_f_2D = npo.zeros(shape, dtype=npo.complex128)
+    Sx_b_2D = npo.zeros(shape, dtype=npo.complex128)
+    Sy_f_2D = npo.zeros(shape, dtype=npo.complex128)
+    Sy_b_2D = npo.zeros(shape, dtype=npo.complex128)
 
     for i in range(0, Ny):
         Sx_f_2D[:, i] = 1 / s_vector_x_f
@@ -123,7 +123,7 @@ def S(l, dw, omega):
 def create_sfactor(s, omega, dL, N, N_pml):
     # used to help construct the S matrices for the PML creation
 
-    sfactor_array = np.ones(N, dtype=np.complex128)
+    sfactor_array = npo.ones(N, dtype=npo.complex128)
     if N_pml < 1:
         return sfactor_array
 
@@ -146,16 +146,16 @@ def create_sfactor(s, omega, dL, N, N_pml):
 
 def curl_E(axis, Ex, Ey, Ez, dL):
     if axis == 0:
-        return (npa.roll(Ez, shift=-1, axis=1) - Ez) / dL - (npa.roll(Ey, shift=-1, axis=2) - Ey) / dL
+        return (np.roll(Ez, shift=-1, axis=1) - Ez) / dL - (np.roll(Ey, shift=-1, axis=2) - Ey) / dL
     elif axis == 1:
-        return (npa.roll(Ex, shift=-1, axis=2) - Ex) / dL - (npa.roll(Ez, shift=-1, axis=0) - Ez) / dL
+        return (np.roll(Ex, shift=-1, axis=2) - Ex) / dL - (np.roll(Ez, shift=-1, axis=0) - Ez) / dL
     elif axis == 2:
-        return (npa.roll(Ey, shift=-1, axis=0) - Ey) / dL - (npa.roll(Ex, shift=-1, axis=1) - Ex) / dL
+        return (np.roll(Ey, shift=-1, axis=0) - Ey) / dL - (np.roll(Ex, shift=-1, axis=1) - Ex) / dL
 
 def curl_H(axis, Hx, Hy, Hz, dL):
     if axis == 0:
-        return (Hz - npa.roll(Hz, shift=1, axis=1)) / dL - (Hy - npa.roll(Hy, shift=1, axis=2)) / dL
+        return (Hz - np.roll(Hz, shift=1, axis=1)) / dL - (Hy - np.roll(Hy, shift=1, axis=2)) / dL
     elif axis == 1:
-        return (Hx - npa.roll(Hx, shift=1, axis=2)) / dL - (Hz - npa.roll(Hz, shift=1, axis=0)) / dL
+        return (Hx - np.roll(Hx, shift=1, axis=2)) / dL - (Hz - np.roll(Hz, shift=1, axis=0)) / dL
     elif axis == 2:
-        return (Hy - npa.roll(Hy, shift=1, axis=0)) / dL - (Hx - npa.roll(Hx, shift=1, axis=1)) / dL
+        return (Hy - np.roll(Hy, shift=1, axis=0)) / dL - (Hx - np.roll(Hx, shift=1, axis=1)) / dL

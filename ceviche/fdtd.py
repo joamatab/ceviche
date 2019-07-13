@@ -1,5 +1,5 @@
-import numpy as np
-import autograd.numpy as npa
+import jax.numpy as np
+import numpy as npo
 
 from copy import copy, deepcopy
 
@@ -153,60 +153,60 @@ class fdtd():
         self.t_index = 0
 
         # magnetic fields
-        self.Hx = npa.zeros(self.grid_shape)
-        self.Hy = npa.zeros(self.grid_shape)
-        self.Hz = npa.zeros(self.grid_shape)
+        self.Hx = np.zeros(self.grid_shape)
+        self.Hy = np.zeros(self.grid_shape)
+        self.Hz = np.zeros(self.grid_shape)
 
         # E field curl integrals
-        self.ICEx = npa.zeros(self.grid_shape)
-        self.ICEy = npa.zeros(self.grid_shape)
-        self.ICEz = npa.zeros(self.grid_shape)
+        self.ICEx = np.zeros(self.grid_shape)
+        self.ICEy = np.zeros(self.grid_shape)
+        self.ICEz = np.zeros(self.grid_shape)
 
         # H field integrals
-        self.IHx = npa.zeros(self.grid_shape)
-        self.IHy = npa.zeros(self.grid_shape)
-        self.IHz = npa.zeros(self.grid_shape)
+        self.IHx = np.zeros(self.grid_shape)
+        self.IHy = np.zeros(self.grid_shape)
+        self.IHz = np.zeros(self.grid_shape)
 
         # E field curls
-        self.CEx = npa.zeros(self.grid_shape)
-        self.CEy = npa.zeros(self.grid_shape)
-        self.CEz = npa.zeros(self.grid_shape)
+        self.CEx = np.zeros(self.grid_shape)
+        self.CEy = np.zeros(self.grid_shape)
+        self.CEz = np.zeros(self.grid_shape)
 
         # H field curl integrals
-        self.ICHx = npa.zeros(self.grid_shape)
-        self.ICHy = npa.zeros(self.grid_shape)
-        self.ICHz = npa.zeros(self.grid_shape)
+        self.ICHx = np.zeros(self.grid_shape)
+        self.ICHy = np.zeros(self.grid_shape)
+        self.ICHz = np.zeros(self.grid_shape)
 
         # D field integrals
-        self.IDx = npa.zeros(self.grid_shape)
-        self.IDy = npa.zeros(self.grid_shape)
-        self.IDz = npa.zeros(self.grid_shape)
+        self.IDx = np.zeros(self.grid_shape)
+        self.IDy = np.zeros(self.grid_shape)
+        self.IDz = np.zeros(self.grid_shape)
 
         # H field curls
-        self.CHx = npa.zeros(self.grid_shape)
-        self.CHy = npa.zeros(self.grid_shape)
-        self.CHz = npa.zeros(self.grid_shape)
+        self.CHx = np.zeros(self.grid_shape)
+        self.CHy = np.zeros(self.grid_shape)
+        self.CHz = np.zeros(self.grid_shape)
 
         # electric displacement fields
-        self.Dx = npa.zeros(self.grid_shape)
-        self.Dy = npa.zeros(self.grid_shape)
-        self.Dz = npa.zeros(self.grid_shape)
+        self.Dx = np.zeros(self.grid_shape)
+        self.Dy = np.zeros(self.grid_shape)
+        self.Dz = np.zeros(self.grid_shape)
 
         # electric fields
-        self.Ex = npa.zeros(self.grid_shape)
-        self.Ey = npa.zeros(self.grid_shape)
-        self.Ez = npa.zeros(self.grid_shape)
+        self.Ex = np.zeros(self.grid_shape)
+        self.Ey = np.zeros(self.grid_shape)
+        self.Ez = np.zeros(self.grid_shape)
 
         # field dictionary to return layer
-        self.fields = {'Ex': npa.zeros(self.grid_shape),
-                       'Ey': npa.zeros(self.grid_shape),
-                       'Ez': npa.zeros(self.grid_shape), 
-                       'Dx': npa.zeros(self.grid_shape),
-                       'Dy': npa.zeros(self.grid_shape),
-                       'Dz': npa.zeros(self.grid_shape),
-                       'Hx': npa.zeros(self.grid_shape),
-                       'Hy': npa.zeros(self.grid_shape),
-                       'Hz': npa.zeros(self.grid_shape)
+        self.fields = {'Ex': np.zeros(self.grid_shape),
+                       'Ey': np.zeros(self.grid_shape),
+                       'Ez': np.zeros(self.grid_shape), 
+                       'Dx': np.zeros(self.grid_shape),
+                       'Dy': np.zeros(self.grid_shape),
+                       'Dz': np.zeros(self.grid_shape),
+                       'Hx': np.zeros(self.grid_shape),
+                       'Hy': np.zeros(self.grid_shape),
+                       'Hz': np.zeros(self.grid_shape)
                       }
 
     def _set_time_step(self, stability_factor=0.5):
@@ -216,7 +216,7 @@ class fdtd():
         """
 
         dL_sum = 3 / self.dL ** 2
-        dL_avg = 1 / npa.sqrt(dL_sum)
+        dL_avg = 1 / np.sqrt(dL_sum)
         courant_stability = dL_avg / C_0
         self.dt = courant_stability * stability_factor
 
@@ -235,9 +235,9 @@ class fdtd():
         if averaging:
 
             # get the value from the middle of the next cell over
-            Q_x_r = npa.roll(Q_mid, shift=1, axis=0)
-            Q_y_r = npa.roll(Q_mid, shift=1, axis=1)
-            Q_z_r = npa.roll(Q_mid, shift=1, axis=2)
+            Q_x_r = np.roll(Q_mid, shift=1, axis=0)
+            Q_y_r = np.roll(Q_mid, shift=1, axis=1)
+            Q_z_r = np.roll(Q_mid, shift=1, axis=2)
 
             # average with the two middle values
             Q_xx = (Q_mid + Q_x_r)/2
@@ -253,9 +253,9 @@ class fdtd():
         """
 
         # compute the averages
-        Q_xx_avg = (Q_xx.astype('float') + npa.roll(Q_xx, shift=1, axis=0))/2
-        Q_yy_avg = (Q_yy.astype('float') + npa.roll(Q_yy, shift=1, axis=1))/2
-        Q_zz_avg = (Q_zz.astype('float') + npa.roll(Q_zz, shift=1, axis=2))/2
+        Q_xx_avg = (Q_xx.astype('float') + np.roll(Q_xx, shift=1, axis=0))/2
+        Q_yy_avg = (Q_yy.astype('float') + np.roll(Q_yy, shift=1, axis=1))/2
+        Q_zz_avg = (Q_zz.astype('float') + np.roll(Q_zz, shift=1, axis=2))/2
 
         return Q_xx_avg, Q_yy_avg, Q_zz_avg
 
@@ -265,9 +265,9 @@ class fdtd():
         # initialize sigma matrices on the full 2X grid
 
         grid_shape_2X = (2 * self.Nx, 2 * self.Ny, 2 * self.Nz)
-        sigx2 = np.zeros(grid_shape_2X)
-        sigy2 = np.zeros(grid_shape_2X)
-        sigz2 = np.zeros(grid_shape_2X)
+        sigx2 = npo.zeros(grid_shape_2X)
+        sigy2 = npo.zeros(grid_shape_2X)
+        sigz2 = npo.zeros(grid_shape_2X)
 
         # sigma vector in the X direction
         for nx in range(2 * self.npml[0]):

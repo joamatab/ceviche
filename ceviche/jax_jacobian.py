@@ -15,7 +15,7 @@ def jacobian(fn, mode='reverse'):
 			raise ValueError("Could not compile jacobian for fn: {}, \
 				make sure that you use jax.numpy to define the operations within".format(fn))
 	else:
-		raise ValueError("'mode' kwarg must be one of {'forward','reverse'}")
+		raise ValueError("'mode' kwarg must be either 'forward' or 'reverse', given {}".format(mode))
 	return jac
 
 
