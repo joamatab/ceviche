@@ -1,68 +1,53 @@
-from autograd.core import make_vjp as _make_vjp, make_jvp as _make_jvp
+from autograd.core import make_vjp, make_jvp
 from autograd.wrap_util import unary_to_nary
-from autograd.extend import primitive, defvjp_argnum, vspace
-from autograd.differential_operators import jacobian as jacobian_backward
+from autograd.extend import vspace
 
 import autograd.numpy as np
 
-N = 2
-A = np.random.random((N,N))
-
 @unary_to_nary
-def jacobian_backward(fun, x):
-    """
-    Returns a function which computes the Jacobian of `fun` with respect to
-    positional argument number `argnum`, which must be a scalar or array. Unlike
-    `grad` it is not restricted to scalar-output functions, but also it cannot
-    take derivatives with respect to some argument types (like lists or dicts).
-    If the input to `fun` has shape (in1, in2, ...) and the output has shape
-    (out1, out2, ...) then the Jacobian has shape (out1, out2, ..., in1, in2, ...).
-    """
-    vjp, ans = _make_vjp(fun, x)
+def jacobian_reverse(fun, x):
+    """ Compute jacobian of fun with respect to x using reverse mode differentiation"""
+    vjp, ans = make_vjp(fun, x)
     ans_vspace = vspace(ans)
     jacobian_shape = ans_vspace.shape + vspace(x).shape
     grads = map(vjp, ans_vspace.standard_basis())
     return np.reshape(np.stack(grads), jacobian_shape)
 
-# @unary_to_nary
+@unary_to_nary
 def jacobian_forward(fun, x):
-    """
-    Returns a function which computes the Jacobian of `fun` with respect to
-    positional argument number `argnum`, which must be a scalar or array. Unlike
-    `grad` it is not restricted to scalar-output functions, but also it cannot
-    take derivatives with respect to some argument types (like lists or dicts).
-    If the input to `fun` has shape (in1, in2, ...) and the output has shape
-    (out1, out2, ...) then the Jacobian has shape (out1, out2, ..., in1, in2, ...).
-    """
-    jvp, ans = _make_jvp(fun, x)
+    """ Compute jacobian of fun with respect to x using forward mode differentiation"""
+    print(x)
+    jvp = make_jvp(fun, x)
+    ans = fun(x)
     ans_vspace = vspace(ans)
     jacobian_shape = ans_vspace.shape + vspace(x).shape
-    grads = map(jvp, ans_vspace.standard_basis())
-    return np.reshape(np.stack(grads), jacobian_shape)
+    grads = map(lambda b: jvp(b)[1], ans_vspace.standard_basis())
+    return np.reshape(np.stack(grads), jacobian_shape).T
 
-def jacobian_forward(fun, x):
-    jvp_f_x = _make_jvp(fun)(x)
-    ans, jac_0 = 
-    for v in ans
-
-
-@unary_to_nary
-def jacobian(fun, argnum, mode='reverse'):
-    print(argnum)
+def jacobian(fun, argnum=0, mode='reverse'):
+    """ Computes jacobian of `fun` with respect to argument number `argnum` using automatic differentiation """
     if mode == 'reverse':
-        return jacobian_backward(fun, argnum)
+        return jacobian_reverse(fun, argnum)
     elif mode == 'forward':
         return jacobian_forward(fun, argnum)
     else:
-        raise ValueError("'mode' kwarg must be one of {reverse, forward}")
+        raise ValueError("'mode' kwarg must be either 'reverse' or 'forward', given {}".format(mode))
 
-
-def fn(x):
-    return A @ x
 
 if __name__ == '__main__':
+
+    N = 2
+    A = np.random.random((N,N))
+    print('A = \n', A)
+
+    def fn(x, b):
+        return A @ x + A.T @ b
+
     x0 = np.random.random((N,))
-    # jacobian_backward(fn, 0)(x0)
-    jacobian_forward(fn, x0)
+    b0 = np.random.random((N,))    
+    print('Jac_rev = \n', jacobian(fn, argnum=0, mode='reverse')(x0, b0))
+    print('Jac_for = \n', jacobian(fn, argnum=0, mode='forward')(x0, b0))
 
-
+    print('A^T = \n', A.T)
+    print('Jac_rev = \n', jacobian(fn, argnum=1, mode='reverse')(x0, b0))
+    print('Jac_for = \n', jacobian(fn, argnum=1, mode='forward')(x0, b0))
