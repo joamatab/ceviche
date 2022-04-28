@@ -79,7 +79,7 @@ class TestFDFD(unittest.TestCase):
         print('\nplotting nonlinear fields')
 
         mod_strength = np.max(np.abs(self.eps_nl(self.Ez) - self.eps_lin))
-        print('max nonlinear change in epsilon = {}'.format(mod_strength))
+        print(f'max nonlinear change in epsilon = {mod_strength}')
 
         E_max = np.max(np.abs(self.Ez_nl))
         # plt.imshow(self.eps_nl(self.Ez))

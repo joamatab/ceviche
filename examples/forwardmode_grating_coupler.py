@@ -62,19 +62,19 @@ grating_eps = grating_index ** 2
 
 # effective index of grating (with teeth)
 neff = ff * neff_teeth + (1 - ff) * neff_hole
-print('-> effective index of {}'.format(neff))
+print(f'-> effective index of {neff}')
 
 # compute grating period (Lambda) and total length of grating (w) based on matching wavevectors of waveguide mode in grating to free space
 Lambda = lambda0 / (neff - np.sin(theta))
 w = Lambda * num_teeth
-print('-> grating period of {} nanometers'.format(Lambda / 1e-9))
+print(f'-> grating period of {Lambda / 1e-9} nanometers')
 
 NPML = [npml, npml]
 
 # compute the grid size of the domain given these parameters
 Nx = npml + int((spc + w + 2 * spc) / dl) + npml                    # left to right (along grating direction)
 Ny = npml + int((2 * spc + subs + h0 + subs + spc) / dl) + npml     # top to bottom (perpendicular to grating)
-print('-> dimensions of {} x {}'.format(Nx, Ny))
+print(f'-> dimensions of {Nx} x {Ny}')
 
 
 """ DEFINE PERMITTIVITY """
@@ -90,7 +90,7 @@ eps_r[:, npml + int((spc + subs) / dl) : npml + int((spc + subs + h1) / dl)] = g
 eps_base = eps_r.copy()  # make a copy of permittivity without teeth
 
 # define grating teeth
-print('-> {} grating teeth within length of {} microns'.format(num_teeth, w / 1e-6))
+print(f'-> {num_teeth} grating teeth within length of {w / 1e-6} microns')
 for i in range(num_teeth):
     tooth_begin = npml + int(spc / dl) + (i + 1) * int(Lambda / dl)
     tooth_end = tooth_begin + int((ff * Lambda) / dl)
@@ -153,8 +153,7 @@ def projection(density, center, eps_min, eps_max, strength=15):
          Note: we use this projection to add to eps_base later.
     """
     sig_dens = sigmoid(density - center, strength=strength)
-    eps = (eps_max - eps_min) * sig_dens
-    return eps
+    return (eps_max - eps_min) * sig_dens
 
 # project the teeth density, using the fill factor as the center value.
 # when ff is high, this will make 'fatter' gratings in the projection
@@ -208,7 +207,7 @@ F_t = fdtd(eps_total, dl, [npml, npml, 0])
 dt = F_t.dt
 steps = int(total_time / dt)
 times = np.arange(steps)
-print('-> total of {} time steps'.format(steps))
+print(f'-> total of {steps} time steps')
 
 # make a gaussian source
 gaussian = lambda t: np.exp(-(t - t0 / dt)**2 / 2 / (sigma / dt)**2) * np.cos(omega0 * t * dt)
@@ -223,7 +222,10 @@ measured = []
 print('-> measuring spectral power in for base waveguide')
 for t_index in range(steps):
     if t_index % 1000 == 0:
-        print('   - done with time step {} of {} ({}%)'.format(t_index, steps, int(t_index / steps * 100)))
+        print(
+            f'   - done with time step {t_index} of {steps} ({int(t_index / steps * 100)}%)'
+        )
+
     fields = F_norm.forward(Jz=source_fn(t_index))
     measured.append(npa.sum(fields['Ez'] * np.flipud(wg_mode)))
 
@@ -250,12 +252,6 @@ if plot_all:
     plt.legend()
     plt.show()
 
-if plot_all:
-    if False: # takes an FDTD simulation to generate.
-              # Make true if you want to see `num_panels` field plots at even intervals
-        aniplot(F_t, source_fn, steps, component='Ez', num_panels=5)
-
-
 """ SPECTRAL POWER COMPUTATION """
 
 # reshape other things for FDTD
@@ -278,15 +274,17 @@ def spectral_power(ff):
     print('-> running FDTD within objective function')
     for t_index in range(steps):
         if t_index % 1000 == 0:
-            print('   - done with time step {} of {} ({}%)'.format(t_index, steps, int(t_index / steps * 100)))
+            print(
+                f'   - done with time step {t_index} of {steps} ({int(t_index / steps * 100)}%)'
+            )
+
         fields = F.forward(Jz=source_fn(t_index))
         measured.append(npa.sum(fields['Ez'] * source))
 
     # get spectral power through FFT
     print('-> computing FFT')
     measured_f = my_fft(npa.array(measured))
-    spect_power = npa.square(npa.abs(measured_f)) / source_p
-    return spect_power
+    return npa.square(npa.abs(measured_f)) / source_p
 
 # evaluate the function at `ff`
 spect = spectral_power(ff)
@@ -315,7 +313,7 @@ P_out = np.sum(spect[:steps//4])
 P_in_max = np.max(spect_in[:steps//4])
 
 coupling_efficiency = P_out / P_in
-print('calculated a coupling efficiency of {} %'.format(100 * coupling_efficiency))
+print(f'calculated a coupling efficiency of {100 * coupling_efficiency} %')
 
 
 """ DIFFERENTIATION W.R.T. FILL FACTOR """
@@ -384,14 +382,15 @@ plt.rc('font', **font)
 
 # where to store these plots
 fname_base = './examples/figs/tmp/'
-print('-> saving plots to {}'.format(os.getcwd() + fname_base[1:]))
+print(f'-> saving plots to {os.getcwd() + fname_base[1:]}')
 
 # setup
 print('   - setup')
 plt.imshow(np.real(imarr(eps_r + 3 * np.abs(source[:,:,0]))))
-plt.xlabel('x'); plt.ylabel('y')
+plt.xlabel('x')
+plt.ylabel('y')
 plt.tight_layout()
-plt.savefig(fname_base + 'setup.pdf', dpi=400)
+plt.savefig(f'{fname_base}setup.pdf', dpi=400)
 plt.clf()
 
 # source
@@ -401,7 +400,7 @@ plt.xlabel('time (femtoseconds)')
 plt.ylabel('amplitude')
 plt.xlim((0, 500))
 plt.tight_layout()
-plt.savefig(fname_base + 'pulse.pdf', dpi=400)
+plt.savefig(f'{fname_base}pulse.pdf', dpi=400)
 plt.clf()
 
 # FDFD fields
@@ -413,13 +412,15 @@ plt.tight_layout()
 Ez2 = np.square(np.abs(imarr(Ez)))
 plt.imshow(Ez2 / Ez2.max(), cmap='magma')
 plt.title('|Ez|^2 (normalized)')
-plt.xlabel('x'); plt.ylabel('y')
+plt.xlabel('x')
+plt.ylabel('y')
 plt.colorbar()
-plt.savefig(fname_base + 'Ez2.pdf', dpi=400)
+plt.savefig(f'{fname_base}Ez2.pdf', dpi=400)
 plt.clf()
 
 # left and right frequencies (THz)
-left_f_P = 180; right_f_P = 210
+left_f_P = 180
+right_f_P = 210
 
 # spectral power
 print('   - spectral power')
@@ -432,7 +433,7 @@ plt.ylabel('normalized power (P)', color='k')
 plt.xlabel('frequency (THz)')
 plt.xlim(left=left_f_P, right=right_f_P)
 plt.legend()
-plt.savefig(fname_base + 'powers.pdf', dpi=400)
+plt.savefig(f'{fname_base}powers.pdf', dpi=400)
 plt.clf()
 
 # power derivatives
@@ -444,11 +445,12 @@ plt.xlabel('frequency (THz)')
 plt.ylabel('deriv of (P) w.r.t. fill factor')
 plt.xlim(left=left_f_P, right=right_f_P)
 plt.ylim(bottom=-.41, top=.41)
-plt.savefig(fname_base + 'd_powers.pdf', dpi=400)
+plt.savefig(f'{fname_base}d_powers.pdf', dpi=400)
 plt.clf()
 
 # left and right frequencies (THz)
-left_f_n = 180; right_f_n = 210
+left_f_n = 180
+right_f_n = 210
 
 # spectral efficiencies
 print('   - spectral efficiencies')
@@ -459,7 +461,7 @@ plt.ylabel('coupling efficiency (n)')
 plt.xlabel('frequency (THz)')
 plt.xlim(left=left_f_n, right=right_f_n)
 plt.ylim(bottom=-0.1, top=1.1)
-plt.savefig(fname_base + 'efficiencies.pdf', dpi=400)
+plt.savefig(f'{fname_base}efficiencies.pdf', dpi=400)
 plt.clf()
 
 # efficiency derivatives
@@ -471,7 +473,7 @@ plt.xlabel('frequency (THz)')
 plt.ylabel('deriv of (n) w.r.t. fill factor')
 plt.xlim(left=left_f_n, right=right_f_n)
 plt.ylim(bottom=-.71, top=.71)
-plt.savefig(fname_base + 'd_efficiencies.pdf', dpi=400)
+plt.savefig(f'{fname_base}d_efficiencies.pdf', dpi=400)
 plt.clf()
 
 # save all of the parameters for reference
@@ -501,5 +503,5 @@ params = {
     'coupling_efficiency':coupling_efficiency
 }
 
-with open(fname_base + 'params.json', 'w') as fp:
+with open(f'{fname_base}params.json', 'w') as fp:
     json.dump(params, fp)

@@ -62,11 +62,11 @@ def _solve_nonlinear(A, b, iterative=False, method=DEFAULT_SOLVER, verbose=False
         rel_res = relative_residual(A_i, x_i, b)
 
         if verbose:
-            print('i = {}, relative residual = {}'.format(i, rel_res))
+            print(f'i = {i}, relative residual = {rel_res}')
 
         if rel_res < atol:
             break
-        
+
         x_i = sparse_solve(A_i, b, iterative=iterative, method=method)
 
     return x_i
@@ -120,11 +120,11 @@ def solve_nonlinear(eps_fn, b, make_A, iterative=False, method=DEFAULT_SOLVER, v
         rel_res = _relative_residual(make_A(eps_i), E_i, b)
 
         if verbose:
-            print('i = {}, relative residual = {}'.format(i, rel_res))
+            print(f'i = {i}, relative residual = {rel_res}')
 
         if rel_res < atol:
             break
-        
+
     return E_i
 
 """========================== ORIGINAL SOLVERS ========================="""
@@ -132,14 +132,13 @@ def solve_nonlinear(eps_fn, b, make_A, iterative=False, method=DEFAULT_SOLVER, v
 
 def _solve_direct(A, b):
     """ Direct solver """
-    if using_mkl:
-        pSolve = pardisoSolver(A, mtype=13)
-        pSolve.factor()
-        x = pSolve.solve(b)
-        pSolve.clear()
-        return x
-    else:
+    if not using_mkl:
         return spl.spsolve(A, b)
+    pSolve = pardisoSolver(A, mtype=13)
+    pSolve.factor()
+    x = pSolve.solve(b)
+    pSolve.clear()
+    return x
 
 # dict of iterative methods supported (name: function)
 ITERATIVE_METHODS = {
@@ -166,7 +165,7 @@ def _solve_iterative(A, b, method=DEFAULT_SOLVER):
     x, info = solver_fn(A, b, atol=ATOL)
 
     if info > 0:
-        raise ValueError("tried {} iterations and did not converge".format(info))
+        raise ValueError(f"tried {info} iterations and did not converge")
     elif info < 0:
         raise ValueError("iterative solver threw error")
 

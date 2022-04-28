@@ -38,7 +38,7 @@ F = fdtd(eps_r, dL=dL, npml=pml)
 dt = F.dt
 
 steps = int(total_time / dt)
-print('{} time steps'.format(steps))
+print(f'{steps} time steps')
 
 gaussian = lambda t: source_amp * np.exp(-(t - t0 / dt)**2 / 2 / (sigma / dt)**2)
 source = lambda t: source_pos * gaussian(t) * np.cos(omega * t * dt)
@@ -58,8 +58,7 @@ def objective(eps_space):
         fields = F.forward(Jz=source(t_index))
         measured.append(npa.sum(fields['Ez'] * measure_pos))
     measured_f = my_fft(npa.array(measured))
-    spectral_power = npa.square(npa.abs(measured_f))
-    return spectral_power
+    return npa.square(npa.abs(measured_f))
 
 eps_space = 1.0
 spectral_power = objective(eps_space)

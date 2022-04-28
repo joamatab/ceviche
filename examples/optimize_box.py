@@ -49,7 +49,7 @@ H_mag = np.abs(Hz)
 I_E0 = np.abs(np.square(np.sum(E_mag * probe)))
 I_H0 = np.abs(np.square(np.sum(H_mag * probe)))
 
-print('I_H0 = {}'.format(I_H0))
+print(f'I_H0 = {I_H0}')
 
 # plot the vacuum fields
 if PLOT:

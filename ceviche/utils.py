@@ -8,14 +8,10 @@ def make_sparse(N, random=True, density=1):
     """ Makes a sparse NxN matrix. """
     if not random:
         np.random.seed(0)
-    D = sp.random(N, N, density=density) + 1j * sp.random(N, N, density=density)
-    return D
+    return sp.random(N, N, density=density) + 1j * sp.random(N, N, density=density)
 
 def float_2_array(x):
-    if not isinstance(x, np.ndarray):
-        return np.array([x])
-    else:
-        return x
+    return x if isinstance(x, np.ndarray) else np.array([x])
 
 def grad_num(fn, arg, step_size=1e-7):
     """ DEPRICATED: use 'numerical' in jacobians.py instead
@@ -47,7 +43,10 @@ def reshape_to_ND(arr, N):
 
     ND = len(arr.shape)
     if ND > N:
-        raise ValueError("array is larger than {} dimensional, given shape {}".format(N, arr.shape))
+        raise ValueError(
+            f"array is larger than {N} dimensional, given shape {arr.shape}"
+        )
+
     extra_dims = (N - ND) * (1,)
     return arr.reshape(arr.shape + extra_dims)
 
@@ -58,18 +57,15 @@ import autograd
 from autograd.extend import primitive, vspace, defvjp, defjvp
 
 def get_value(x):
-    if type(x) == autograd.numpy.numpy_boxes.ArrayBox:
-        return x._value
-    else:
-        return x
+    return x._value if type(x) == autograd.numpy.numpy_boxes.ArrayBox else x
 
 get_value_arr = np.vectorize(get_value)
 
 def get_shape(x):
     """ Gets the shape of x, even if it is not an array """
-    if isinstance(x, float) or isinstance(x, int):
+    if isinstance(x, (float, int)):
         return (1,)
-    elif isinstance(x, tuple) or isinstance(x, list):
+    elif isinstance(x, (tuple, list)):
         return (len(x),)
     else:
         return vspace(x).shape
@@ -149,24 +145,21 @@ def aniplot(F, source, steps, component='Ez', num_panels=10):
         fields = F.forward(Jz=source(t_index))
 
         # if it's one of the num_panels panels
-        if t_index % (steps // num_panels) == 0:
+        if t_index % (steps // num_panels) == 0 and ax_index < num_panels:
+            print(f'working on axis {ax_index}/{num_panels} for time step {t_index}')
 
-            if ax_index < num_panels:   # extra safety..sometimes tries to access num_panels-th elemet of ax_list, leading to error
+            # grab the axis
+            ax = ax_list[ax_index]
 
-                print('working on axis {}/{} for time step {}'.format(ax_index, num_panels, t_index))
+            # plot the fields
+            im_t = ax.pcolormesh(np.zeros((Nx, Ny)), cmap='RdBu')
+            max_E = np.abs(fields[component]).max()
+            im_t.set_array(fields[component][:, :, 0].ravel().T)
+            im_t.set_clim([-max_E / 2.0, max_E / 2.0])
+            ax.set_title(f'time = {F.dt * t_index} seconds')
 
-                # grab the axis
-                ax = ax_list[ax_index]
-
-                # plot the fields
-                im_t = ax.pcolormesh(np.zeros((Nx, Ny)), cmap='RdBu')
-                max_E = np.abs(fields[component]).max()
-                im_t.set_array(fields[component][:, :, 0].ravel().T)
-                im_t.set_clim([-max_E / 2.0, max_E / 2.0])
-                ax.set_title('time = {} seconds'.format(F.dt*t_index))
-
-                # update the axis
-                ax_index += 1
+            # update the axis
+            ax_index += 1
     plt.show()
 
 

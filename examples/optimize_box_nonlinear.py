@@ -67,7 +67,7 @@ E_mag = np.abs(Ez)
 I_H0 = np.abs(np.square(np.sum(H_mag * probe)))
 I_E0 = np.abs(np.square(np.sum(E_mag * probe)))
 
-print('I_E0 = {}'.format(I_E0))
+print(f'I_E0 = {I_E0}')
 
 # plot the vacuum fields
 if PLOT:
@@ -79,7 +79,7 @@ if PLOT:
     plt.show()
 
 mod_strength = np.max(np.abs(eps_nl(Ez) - eps_r))
-print('max nonlinear change in epsilon = {}'.format(mod_strength))
+print(f'max nonlinear change in epsilon = {mod_strength}')
 
 # defines the intensity on the other side of the box as a function of the relative permittivity grid
 def intensity(eps_arr):

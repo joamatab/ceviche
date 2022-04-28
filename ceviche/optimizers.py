@@ -12,25 +12,16 @@ def adam_minimize(objective, params, jac, step_size=1e-2, Nsteps=100, bounds=Non
 
     opt_keys = options.keys()
 
-    if 'beta1' in opt_keys:
-        beta1 = options['beta1']
-    else:
-        beta1 = 0.9
-
-    if 'beta2' in opt_keys:
-        beta2 = options['beta2']
-    else:
-        beta2 = 0.999
-
+    beta1 = options['beta1'] if 'beta1' in opt_keys else 0.9
+    beta2 = options['beta2'] if 'beta2' in opt_keys else 0.999
     for iteration in range(Nsteps):
 
         of = objective(params)
-        of_list.append(of) 
+        of_list.append(of)
         grad = jac(params).ravel()
 
-        if 'disp' in opt_keys:
-            if options['disp'] == True:
-                print("At iteration %d objective value is %f" %(iteration, of))
+        if 'disp' in opt_keys and options['disp'] == True:
+            print("At iteration %d objective value is %f" %(iteration, of))
 
         if iteration == 0:
             mopt = np.zeros(grad.shape)

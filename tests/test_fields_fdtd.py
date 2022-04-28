@@ -54,7 +54,7 @@ class TestFields_FDTD(unittest.TestCase):
                 im.set_array(fields['Ez'][:, :, 0].ravel())
                 im.set_clim([-1, 1])
                 plt.pause(0.001)
-                ax.set_title('time = {}'.format(t_index))
+                ax.set_title(f'time = {t_index}')
 
     def test_fields_H(self):
 
@@ -73,7 +73,7 @@ class TestFields_FDTD(unittest.TestCase):
                 im.set_array(fields['Hz'][:, :, 0].ravel())
                 im.set_clim([-1, 1])
                 plt.pause(0.001)
-                ax.set_title('time = {}'.format(t_index))
+                ax.set_title(f'time = {t_index}')
 
 if __name__ == '__main__':
     unittest.main()

@@ -57,7 +57,7 @@ F = fdfd_hz(omega, dL, eps_r, npml)
 Ex, Ey, Hz = F.solve(source)
 E_mag = np.sqrt(np.square(np.abs(Ex)) + np.square(np.abs(Ey)))
 E0 = np.max(E_mag[spc:-spc, :])
-print('E0 = {} V/m'.format(E0))
+print(f'E0 = {E0} V/m')
 
 # plot the vacuum fields
 if PLOT:
@@ -112,7 +112,7 @@ def stack(arr, num_periods=1):
     # returns an array that is stacked `num_periods` times along y.  For plotting many periods of the accelerator unit cell.
     arr_orig = get_value(arr).copy()
     arr_big = get_value(arr).copy()
-    for i in range(num_periods):
+    for _ in range(num_periods):
         arr_big = np.hstack([arr_big, arr_orig])
     return arr_big
 

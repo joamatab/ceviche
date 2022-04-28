@@ -42,10 +42,7 @@ class fdfd():
     @staticmethod
     def get_shape(arr_or_fn):
         """ Returns the shape of arr_or_fn (which can be array or function returning array) """
-        if callable(arr_or_fn):
-            return arr_or_fn(0).shape
-        else:
-            return arr_or_fn.shape
+        return arr_or_fn(0).shape if callable(arr_or_fn) else arr_or_fn.shape
 
     @property
     def eps_r(self):
@@ -209,20 +206,22 @@ class fdfd_ez_nl(fdfd_nonlinear):
 def make_A_Hz(info_dict, eps_vec):
     """ constructs the system matrix for `Hz` polarization """
     diag = 1 / EPSILON_0 * sp.spdiags(1/eps_vec, [0], eps_vec.size, eps_vec.size)
-    A = spdot(info_dict['Dxf'], spdot(info_dict['Dxb'].T, diag).T) \
-      + spdot(info_dict['Dyf'], spdot(info_dict['Dyb'].T, diag).T) \
-      + info_dict['omega']**2 * MU_0 * sp.eye(eps_vec.size)
-    return A
+    return (
+        spdot(info_dict['Dxf'], spdot(info_dict['Dxb'].T, diag).T)
+        + spdot(info_dict['Dyf'], spdot(info_dict['Dyb'].T, diag).T)
+        + info_dict['omega'] ** 2 * MU_0 * sp.eye(eps_vec.size)
+    )
 
 # note: this primitive not actually needed. but saving for later
 # @primitive
 def make_A_Ez(info_dict, eps_vec):
     """ constructs the system matrix for `Ez` polarization """
     diag = EPSILON_0 * sp.spdiags(eps_vec, [0], eps_vec.size, eps_vec.size)
-    A = 1 / MU_0 * info_dict['Dxf'].dot(info_dict['Dxb']) \
-      + 1 / MU_0 * info_dict['Dyf'].dot(info_dict['Dyb']) \
-      + info_dict['omega']**2 * diag
-    return A
+    return (
+        1 / MU_0 * info_dict['Dxf'].dot(info_dict['Dxb'])
+        + 1 / MU_0 * info_dict['Dyf'].dot(info_dict['Dyb'])
+        + info_dict['omega'] ** 2 * diag
+    )
 
 # def vjp_maker_make_A_Ez(A, info_dict, eps_vec):
 #     def vjp(v):
@@ -235,13 +234,11 @@ def make_A_Ez(info_dict, eps_vec):
 
 def Ez_to_Hx(Ez, info_dict):
     """ Returns magnetic field `Hx` from electric field `Ez` """
-    Hx = - spdot(info_dict['Dyb'], Ez) / MU_0
-    return Hx
+    return - spdot(info_dict['Dyb'], Ez) / MU_0
 
 def Ez_to_Hy(Ez, info_dict):
     """ Returns magnetic field `Hy` from electric field `Ez` """
-    Hy =  spdot(info_dict['Dxb'], Ez) / MU_0
-    return Hy
+    return spdot(info_dict['Dxb'], Ez) / MU_0
 
 def E_to_H(Ez, info_dict, eps_vec=None):
     """ More convenient function to return both Hx and Hy from Ez """
@@ -251,20 +248,19 @@ def E_to_H(Ez, info_dict, eps_vec=None):
 
 def Hz_to_Ex(Hz, info_dict, eps_vec, adjoint=False):
     """ Returns electric field `Ex` from magnetic field `Hz` """
-    # note: adjoint switch is because backprop thru this fn. has different form
-    if adjoint:
-        Ex =  spdot(info_dict['Dyf'].T, Hz) / eps_vec / EPSILON_0
-    else:
-        Ex = -spdot(info_dict['Dyb'],   Hz) / eps_vec / EPSILON_0
-    return Ex
+    return (
+        spdot(info_dict['Dyf'].T, Hz) / eps_vec / EPSILON_0
+        if adjoint
+        else -spdot(info_dict['Dyb'], Hz) / eps_vec / EPSILON_0
+    )
 
 def Hz_to_Ey(Hz, info_dict, eps_vec, adjoint=False):
     """ Returns electric field `Ey` from magnetic field `Hz` """
-    if adjoint:
-        Ey = -spdot(info_dict['Dxf'].T, Hz) / eps_vec / EPSILON_0
-    else:
-        Ey =  spdot(info_dict['Dxb'],   Hz) / eps_vec / EPSILON_0
-    return Ey
+    return (
+        -spdot(info_dict['Dxf'].T, Hz) / eps_vec / EPSILON_0
+        if adjoint
+        else spdot(info_dict['Dxb'], Hz) / eps_vec / EPSILON_0
+    )
 
 def H_to_E(Hz, info_dict, eps_vec, adjoint=False):
     """ More convenient function to return both Ex and Ey from Hz """
@@ -283,8 +279,7 @@ def solve_Ez(info_dict, eps_vec, source, iterative=False, method=DEFAULT_SOLVER)
     """
     A = make_A_Ez(info_dict, eps_vec)
     b = 1j * info_dict['omega'] * source
-    Ez = sparse_solve(A, b, iterative=iterative, method=method)
-    return Ez
+    return sparse_solve(A, b, iterative=iterative, method=method)
 
 # define the gradient of solve_Ez w.r.t. eps_vec (in Ez)
 def vjp_maker_solve_Ez(Ez, info_dict, eps_vec, source, iterative=False, method=DEFAULT_SOLVER):
@@ -334,9 +329,8 @@ def solve_Hz(info_dict, eps_vec, source, iterative=False, method=DEFAULT_SOLVER)
         and 'eps_vec' is a (1D) vecay of the relative permittivity
     """
     A = make_A_Hz(info_dict, eps_vec)
-    b = 1j * info_dict['omega'] * source    
-    Hz = sparse_solve(A, b, iterative=iterative, method=method)
-    return Hz
+    b = 1j * info_dict['omega'] * source
+    return sparse_solve(A, b, iterative=iterative, method=method)
 
 def vjp_maker_solve_Hz(Hz, info_dict, eps_vec, source, iterative=False, method=DEFAULT_SOLVER):
     """ Gives vjp for solve_Hz with respect to eps_vec """    
@@ -449,8 +443,7 @@ def solve_nonlinear(info_dict, eps_fn, b, iterative=False, method=DEFAULT_SOLVER
 def solve_Ez_nl(info_dict, eps_fn, source, iterative=False, method=DEFAULT_SOLVER):
 
     b = 1j * info_dict['omega'] * source
-    Ez = solve_nonlinear(info_dict, eps_fn, b)
-    return Ez
+    return solve_nonlinear(info_dict, eps_fn, b)
 
 # To do: write our simpler adjoint formalism for converged solutions here
 
@@ -522,11 +515,11 @@ def S_create(omega, shape, npml, dL):
     Sy_f_2D = np.zeros(shape, dtype=np.complex128)
     Sy_b_2D = np.zeros(shape, dtype=np.complex128)
 
-    for i in range(0, Ny):
+    for i in range(Ny):
         Sx_f_2D[:, i] = 1 / s_vector_x_f
         Sx_b_2D[:, i] = 1 / s_vector_x_b
 
-    for i in range(0, Nx):
+    for i in range(Nx):
         Sy_f_2D[i, :] = 1 / s_vector_y_f
         Sy_b_2D[i, :] = 1 / s_vector_y_b
 

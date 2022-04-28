@@ -28,7 +28,7 @@ class fdtd():
         self.eps_r = eps_r
 
     def __repr__(self):
-        return "FDTD(eps_r.shape={}, dL={}, NPML={})".format(self.grid_shape, self.dL, self.npml)
+        return f"FDTD(eps_r.shape={self.grid_shape}, dL={self.dL}, NPML={self.npml})"
 
     def __str__(self):
         return "FDTD object:\n\tdomain size = {}\n\tdL = {}\n\tNPML = {}".format(self.grid_shape, self.dL, self.npml)

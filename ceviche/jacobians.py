@@ -67,7 +67,9 @@ def jacobian(fun, argnum=0, mode='reverse', step_size=1e-6):
     elif mode == 'numerical':
         return jacobian_numerical(fun, argnum, step_size=step_size)
     else:
-        raise ValueError("'mode' kwarg must be either 'reverse' or 'forward' or 'numerical', given {}".format(mode))
+        raise ValueError(
+            f"'mode' kwarg must be either 'reverse' or 'forward' or 'numerical', given {mode}"
+        )
 
 
 if __name__ == '__main__':
